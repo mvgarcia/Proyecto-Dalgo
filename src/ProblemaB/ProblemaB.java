@@ -1,96 +1,93 @@
 package ProblemaB;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Arrays;
 
-import java.util.ArrayDeque;
 public class ProblemaB {
-	
-	//Autores: Pedro Vallejo, Valentina Garcia
 	
 	public int balanceoCarga(int[]t, int p)
 	{
 		int camin=0;
-		int tamanio= Math.floorDiv(t.length, p);
-		int res=t.length%p;
-		if(res>0)tamanio+=1;
-		ArrayDeque<Integer>[] a = new ArrayDeque[p];		
+		int[][] indices = new int [p][2]; //indices[p][0]:inicio, indices[p][1]:fin
 		
-		int i=0;
-		int[] valores = new int[p];
-		for(int j=0;j<p && i<t.length;j++)
+		for(int i=1;i<=p;i++)
 		{
-			int cota=0;
-			if(res>0) {cota= tamanio+1;res--;}
-			else {cota=tamanio;}
-			for(int k=0;k<cota;k++)
-			{
-				a[j].addLast(t[i]);
-				valores[j]+=t[i];
-				i++;
-			}
+			indices[p-i][0]=t.length-i;
+			indices[p-i][1]=t.length-i;
 		}
+		indices[0][0]=0;
 		
-		boolean subio= false;
-		while(subio)
+		int []valores= vals(indices,t,p);
+		
+		int max[]=darMax(valores);
+		int mejor=max[0];
+		while(max[1]!=p-1)
 		{
-			int [] maxs=darMax(valores);
-			int max=maxs[0];
-			int posMax=maxs[1];
-			if(posMax==0)
+			indices[max[1]][1]-=1;
+			indices[max[1]+1][0]-=1;
+			valores=vals(indices,t,p);
+			max=darMax(valores);
+			if(max[0]<mejor)
 			{
-				int cambio=a[posMax+1].getFirst()+a[posMax].getLast();
-				valores[posMax]-=cambio;
-				valores[posMax+1]+=cambio;
-				a[posMax+1].addFirst(a[posMax].removeLast());
+				mejor=max[0];
 			}
-			else if(posMax==valores.length-1)
-			{
-				int cambio=a[posMax].getFirst()+a[posMax-1].getLast();
-				valores[posMax-1]+=cambio;
-				valores[posMax]-=cambio;
-				a[posMax-1].addLast(a[posMax].removeFirst());
-			}
-			else
-			{
-				int menor=valores[posMax-1];
-				if(valores[posMax+1]<menor)menor=valores[posMax+1];
-				if(menor==valores[posMax-1])
-				{
-					int cambio=a[posMax].getFirst()+a[posMax-1].getLast();
-					valores[posMax-1]+=cambio;
-					valores[posMax]-=cambio;
-					a[posMax-1].addLast(a[posMax].removeFirst());
-				}
-				else
-				{
-					int cambio=a[posMax+1].getFirst()+a[posMax].getLast();
-					valores[posMax]-=cambio;
-					valores[posMax+1]+=cambio;
-					a[posMax+1].addFirst(a[posMax].removeLast());
-				}
-			}
-			int nuevoMax=darMax(valores)[0];
-			if(nuevoMax>max)subio=true;
-			camin=max;
+			camin=mejor;
 		}
 		
 		return camin;
 	}
 	
-	public int[] darMax(int[]valores)
+	
+	public int[] vals(int[][]indices, int[]t,int p)
+	{
+		int valores[]=new int[p];
+		for(int i=0;i<p;i++)
+		{
+			for(int j=indices[i][0];j<=indices[i][1];j++)
+			{
+				valores[i]+=t[j];
+			}
+		}
+		return valores;
+	}
+	
+	
+	public int[] darMax(int[]valores)//max[0]:suma, max[1]:pos
 	{
 		int [] max=new int[2];
-		for(int v=0;v<valores.length;v++) {
+		for(int i=0;i<valores.length;i++) {
+			int v=valores[i];
 			if(v>max[0]) {
-				max[0]=valores[v];
-				max[1]=v;
+				max[0]=v;
+				max[1]=i;
 			}
 		}
 		return max;
 	}
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+	
+	public static void main(String[] args) throws Exception {
+		ProblemaB instancia = new ProblemaB();
+		try ( 
+			InputStreamReader is= new InputStreamReader(System.in);
+			BufferedReader br = new BufferedReader(is);
+		) { 
+			String line = br.readLine();
+			
+			while(line!=null && line.length()>0 && !"0 0".equals(line)) {
+				final String [] dataStr = line.split(" ");
+				int n=Integer.parseInt(dataStr[0]);
+				int p= Integer.parseInt(dataStr[1]);
+				line = br.readLine();
+				final String [] dataStr1 = line.split(" ");
+				final int[] t = Arrays.stream(dataStr1).mapToInt(f->Integer.parseInt(f)).toArray();
+				
+				System.out.println();
+				int camin = instancia.balanceoCarga(t, p);
+				System.out.print(camin);
+				line = br.readLine();
+			}
+		}
 	}
 
 }
